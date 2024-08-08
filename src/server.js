@@ -14,6 +14,10 @@ const START_SERVER = () => {
 
   app.use(express.json())
 
+  app.get('/', (req, res) => {
+    res.json({ message: 'Welcome to family application!' })
+  })
+
   require('./routes/v1/memberRoute')(app)
 
   app.use(errorHandlingMiddleware)
