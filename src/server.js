@@ -4,7 +4,6 @@ const exitHook = require('async-exit-hook')
 const cors = require('cors')
 const { CLOSE_DB, CONNECT_DB } = require('./config/mongodb')
 const { env } = require('./config/environment')
-const { APIs_V1 } = require('./routes/v1')
 const { errorHandlingMiddleware } = require('./middlewares/errorHandlingMiddleware')
 const corsOptions = require('./config/cors')
 
@@ -15,7 +14,7 @@ const START_SERVER = () => {
 
   app.use(express.json())
 
-  app.use('/v1', APIs_V1)
+  require('./routes/v1/memberRoute')(app)
 
   app.use(errorHandlingMiddleware)
   if (env.BUILD_MODE === 'production') {
