@@ -7,9 +7,9 @@ module.exports = app => {
   const Router = express.Router()
 
   Router.get('/', (req, res) => {
-    res.status(StatusCodes.OK).json({ message: 'GET: API get list member' })
+    res.status(StatusCodes.OK).json({ message: 'Status API members' })
   })
-
+  Router.get('/list', memberController.getList)
   Router.post('/create', memberValidation.createNew, memberController.createNew)
 
   app.use('/api/members', Router)

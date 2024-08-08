@@ -1,17 +1,55 @@
+/* eslint-disable no-console */
 const { StatusCodes } = require('http-status-codes')
-const { familyService } = require('../services/familyService')
+const { OBJECT_ID_RULE, OBJECT_ID_RULE_MESSAGE } = require('../utils/validators')
+const Joi = require('joi')
+const Family = require('../models/familyModel')
 
-const createNew = async (req, res, next) => {
+const FAMILY_COLLECTION_SCHEMA = Joi.object({
+  type: Joi.string().trim().strict().default('family'),
+  husband: Joi.string().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE).default(null),
+  wife: Joi.string().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE).default(null),
+  exWife: Joi.string().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE).default(null),
+  children: Joi.array()
+    .items(Joi.string().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE).default(null))
+    .default([]),
+  createdAt: Joi.date().default(new Date()),
+  updatedAt: Joi.date().default(null),
+  _destroy: Joi.boolean().default(false)
+})
+
+const validationBeforeCreate = async data => {
+  return await FAMILY_COLLECTION_SCHEMA.validateAsync(data, { abortEarly: false })
+}
+
+exports.createNew = async (req, res, next) => {
   try {
-    const createFamily = await familyService.createNew(req.body)
-    res.status(StatusCodes.CREATED).json(createFamily)
+    if (!req.body) {
+      res.status(400).send({
+        message: 'Content can not be empty!'
+      })
+    }
+    const family = new Family({
+      type: req.body.type,
+      husband: req.body.husband,
+      wife: req.body.wife,
+      exWife: req.body.exWife,
+      children: req.body.children
+    })
+    const familyValid = await validationBeforeCreate(family)
+    if (!familyValid) {
+      res.status(StatusCodes.BAD_REQUEST).send({
+        message: 'Member invalid!'
+      })
+    }
+    Family.create(familyValid, (error, data) => {
+      if (error) {
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).send({
+          message: error.message || 'Some error occurred while creating the family!'
+        })
+      }
+      res.status(StatusCodes.CREATED).json(data)
+    })
   } catch (error) {
     next(error)
   }
 }
-
-const familyController = {
-  createNew
-}
-
-module.exports = { familyController }

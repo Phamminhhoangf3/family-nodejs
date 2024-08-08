@@ -19,6 +19,7 @@ const START_SERVER = () => {
   })
 
   require('./routes/v1/memberRoute')(app)
+  require('./routes/v1/familyRoute')(app)
 
   app.use(errorHandlingMiddleware)
   if (env.BUILD_MODE === 'production') {

@@ -1,69 +1,44 @@
-const Joi = require('joi')
 const { ObjectId } = require('mongodb')
 const { GET_DB } = require('../config/mongodb')
-const { TYPE_MEMBER } = require('../utils/constants')
-const { OBJECT_ID_RULE, OBJECT_ID_RULE_MESSAGE } = require('../utils/validators')
 
 const FAMILY_COLLECTION_NAME = 'families'
-const FAMILY_COLLECTION_SCHEMA = Joi.object({
-  type: Joi.string().required().valid(TYPE_MEMBER.FAMILY),
-  husband: Joi.string().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE).default(null),
-  wife: Joi.string().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE).default(null),
-  exWife: Joi.string().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE).default(null),
-  children: Joi.array()
-    .items(Joi.string().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE).default(null))
-    .default([]),
-  createdAt: Joi.date().default(new Date()),
-  updatedAt: Joi.date().default(null),
-  _destroy: Joi.boolean().default(false)
-})
+const findOneById = async id =>
+  await GET_DB()
+    .collection(FAMILY_COLLECTION_NAME)
+    .findOne({ _id: new ObjectId(id) })
 
-// những field không được cập nhật
-// const INVALID_UPDATE_FIELDS = ['_id', 'boardId', 'createdAt']
-
-const validationBeforeCreate = async data => {
-  return await FAMILY_COLLECTION_SCHEMA.validateAsync(data, { abortEarly: false })
+const Family = function (family) {
+  this.type = family.type
+  this.husband = family.husband
+  this.wife = family.wife
+  this.exWife = family.exWife
+  this.children = family.children
 }
 
-const createNew = async data => {
+Family.create = async (familyNew, result) => {
   try {
-    const validData = await validationBeforeCreate(data)
-    const newFamilyToAdd = {
-      ...validData
-    }
-
-    if (newFamilyToAdd.husband) newFamilyToAdd.husband = new ObjectId(validData.husband)
-    if (newFamilyToAdd.wife) newFamilyToAdd.wife = new ObjectId(validData.wife)
-    if (newFamilyToAdd.exWife) newFamilyToAdd.exWife = new ObjectId(validData.exWife)
-    if (newFamilyToAdd.children)
-      newFamilyToAdd.children = validData.children.map(i => new ObjectId(i))
-
-    const createdFamily = await GET_DB()
+    const validDataToAdd = { ...familyNew }
+    if (familyNew.husband) validDataToAdd.husband = new ObjectId(familyNew.husband)
+    if (familyNew.wife) validDataToAdd.wife = new ObjectId(familyNew.wife)
+    if (familyNew.exWife) validDataToAdd.exWife = new ObjectId(familyNew.exWife)
+    if (familyNew.children.length) validDataToAdd.children.map(child => new ObjectId(child))
+    const familyInserted = await GET_DB()
       .collection(FAMILY_COLLECTION_NAME)
-      .insertOne(newFamilyToAdd)
-    return createdFamily
+      .insertOne(validDataToAdd)
+    const familyCreated = await findOneById(familyInserted.insertedId)
+    result(null, familyCreated)
   } catch (error) {
-    throw new Error(error)
+    result(error, null)
   }
 }
 
-const findOneById = async familyId => {
+Family.findOneById = async (id, result) => {
   try {
-    const result = await GET_DB()
-      .collection(FAMILY_COLLECTION_NAME)
-      .findOne({
-        _id: new ObjectId(familyId)
-      })
-    return result
+    const result = findOneById(id)
+    result(null, result)
   } catch (error) {
-    throw new Error(error)
+    result(error, null)
   }
 }
 
-const familyModel = {
-  FAMILY_COLLECTION_NAME,
-  FAMILY_COLLECTION_SCHEMA,
-  createNew,
-  findOneById
-}
-module.exports = { familyModel }
+module.exports = Family

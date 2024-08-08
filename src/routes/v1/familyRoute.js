@@ -1,10 +1,15 @@
 const express = require('express')
-const { familyController } = require('../../controllers/familyController')
-const { familyValidation } = require('../../validations/familyValidation')
+const { StatusCodes } = require('http-status-codes')
+const familyValidation = require('../../validations/familyValidation')
+const familyController = require('../../controllers/familyController')
 
-const Router = express.Router()
+module.exports = app => {
+  const Router = express.Router()
 
-Router.route('/').post(familyValidation.createNew, familyController.createNew)
+  Router.get('/', (req, res) => {
+    res.status(StatusCodes.OK).json({ message: 'Status API families' })
+  })
+  Router.post('/create', familyValidation.createNew, familyController.createNew)
 
-const familyRoute = Router
-module.exports = { familyRoute }
+  app.use('/api/families', Router)
+}
