@@ -2,10 +2,11 @@ const { ObjectId } = require('mongodb')
 const { GET_DB } = require('../config/mongodb')
 const moment = require('moment')
 
-const USER_COLLECTION_NAME = 'members'
+const MEMBER_COLLECTION_NAME = 'members'
+
 const findOneById = async id =>
   await GET_DB()
-    .collection(USER_COLLECTION_NAME)
+    .collection(MEMBER_COLLECTION_NAME)
     .findOne({ _id: new ObjectId(id) })
 
 const Member = function (member) {
@@ -24,7 +25,9 @@ Member.create = async (newMember, result) => {
   try {
     const validDataToAdd = { ...newMember }
     if (newMember.family) validDataToAdd.family = new ObjectId(newMember.family)
-    const memberInserted = await GET_DB().collection(USER_COLLECTION_NAME).insertOne(validDataToAdd)
+    const memberInserted = await GET_DB()
+      .collection(MEMBER_COLLECTION_NAME)
+      .insertOne(validDataToAdd)
     const memberCreated = await findOneById(memberInserted.insertedId)
     result(null, memberCreated)
   } catch (error) {
@@ -44,7 +47,7 @@ Member.findAll = async (filters, result) => {
       if (filters?.toDate) query.createdAt.$lte = moment(filters.toDate).endOf('day').valueOf()
     }
     const res = await GET_DB()
-      .collection(USER_COLLECTION_NAME)
+      .collection(MEMBER_COLLECTION_NAME)
       .find(query, {
         projection: { _destroy: 0 }
       })
@@ -65,3 +68,4 @@ Member.findOneById = async (id, result) => {
 }
 
 module.exports = Member
+module.exports = MEMBER_COLLECTION_NAME

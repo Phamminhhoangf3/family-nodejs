@@ -53,3 +53,28 @@ exports.createNew = async (req, res, next) => {
     next(error)
   }
 }
+
+exports.getDetail = async (req, res, next) => {
+  try {
+    if (!req.body?.id) {
+      res.status(400).send({
+        message: 'Content can not be empty!'
+      })
+    }
+    Family.findOneById(req.body.id, (error, data) => {
+      if (error) {
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).send({
+          message: error.message || 'Some error occurred while creating the family!'
+        })
+      } else {
+        const dataMap = { ...data?.[0] }
+        if (dataMap?.husband?.length) dataMap.husband = dataMap.husband[0]
+        if (dataMap?.wife?.length) dataMap.wife = dataMap.wife[0]
+        if (dataMap?.exWife?.length) dataMap.exWife = dataMap.exWife[0]
+        res.status(StatusCodes.OK).json(dataMap)
+      }
+    })
+  } catch (error) {
+    next(error)
+  }
+}
