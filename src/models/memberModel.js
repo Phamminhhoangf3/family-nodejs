@@ -67,5 +67,4 @@ Member.findOneById = async (id, result) => {
   }
 }
 
-module.exports = Member
-module.exports = MEMBER_COLLECTION_NAME
+module.exports = { Member, MEMBER_COLLECTION_NAME }

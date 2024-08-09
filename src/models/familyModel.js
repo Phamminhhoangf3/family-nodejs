@@ -1,6 +1,6 @@
 const { ObjectId } = require('mongodb')
 const { GET_DB } = require('../config/mongodb')
-const MEMBER_COLLECTION_NAME = require('./memberModel')
+const { MEMBER_COLLECTION_NAME } = require('./memberModel')
 
 const FAMILY_COLLECTION_NAME = 'families'
 const findOneById = async id =>

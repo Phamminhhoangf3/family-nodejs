@@ -2,7 +2,7 @@
 const { StatusCodes } = require('http-status-codes')
 const { TAG_USER, TYPE_MEMBER } = require('../utils/constants')
 const { OBJECT_ID_RULE, OBJECT_ID_RULE_MESSAGE } = require('../utils/validators')
-const Member = require('../models/memberModel.js')
+const { Member } = require('../models/memberModel.js')
 const Joi = require('joi')
 const moment = require('moment')
 const dateFormat = 'YYYY-MM-DD'
